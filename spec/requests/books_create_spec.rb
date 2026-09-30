@@ -57,7 +57,7 @@ RSpec.describe "Books create", type: :request do
       post books_path, params: { book: valid_params[:book].merge(title: "") }
     }.not_to change(Book, :count)
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(inertia.component).to eq("Books/New")
   end
 end

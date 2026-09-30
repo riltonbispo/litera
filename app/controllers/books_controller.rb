@@ -1,5 +1,6 @@
 class BooksController < ApplicationController
   before_action :authenticate_user!, except: :index
+  before_action :set_book, only: %i[edit update destroy]
 
   def index
     authorize Book
@@ -31,7 +32,34 @@ class BooksController < ApplicationController
     end
   end
 
+  def edit
+    authorize @book
+
+    render inertia: "Books/Edit", props: form_options.merge(book: BookSerializer.new(@book, user: current_user).as_json)
+  end
+
+  def update
+    authorize @book
+
+    if @book.update(book_params)
+      redirect_to books_path, notice: "Livro atualizado com sucesso."
+    else
+      render inertia: "Books/Edit", props: form_options.merge(book: BookSerializer.new(@book, user: current_user).as_json), status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    authorize @book
+
+    @book.destroy!
+    redirect_to books_path, notice: "Livro removido com sucesso.", status: :see_other
+  end
+
   private
+
+  def set_book
+    @book = Book.find(params[:id])
+  end
 
   def books_payload(books)
     {
