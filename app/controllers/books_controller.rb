@@ -1,4 +1,6 @@
 class BooksController < ApplicationController
+  before_action :authenticate_user!, except: :index
+
   def index
     authorize Book
 
@@ -12,6 +14,23 @@ class BooksController < ApplicationController
     end
   end
 
+  def new
+    authorize Book
+
+    render inertia: "Books/New", props: form_options
+  end
+
+  def create
+    @book = current_user.books.build(book_params)
+    authorize @book
+
+    if @book.save
+      redirect_to books_path, notice: "Livro cadastrado com sucesso."
+    else
+      render inertia: "Books/New", props: form_options, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def books_payload(books)
@@ -21,6 +40,16 @@ class BooksController < ApplicationController
       filter_options: filter_options,
       meta: pagination_meta(books)
     }
+  end
+
+  def form_options
+    {
+      genre_options: Book.distinct.order(:genre).pluck(:genre)
+    }
+  end
+
+  def book_params
+    params.require(:book).permit(:title, :author, :first_publish_year, :genre, :open_library_key, :cover_id)
   end
 
   def filter_params

@@ -18,6 +18,9 @@ class ApplicationController < ActionController::Base
         email: current_user.email,
         initials: current_user.email.first.upcase
       }
+    }, flash: {
+      notice: flash.notice,
+      alert: flash.alert
     }
   end
 end

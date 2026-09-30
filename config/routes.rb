@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   }
 
   resource :book_search, only: :show
-  resources :books, only: :index
+  resources :books, only: %i[index new create]
 
   get "ui-test" => "home#ui_test"
 

@@ -1,4 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react'
+import { useEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Toaster } from '@/components/ui/sonner'
+import { toast } from 'sonner'
 import { type PageProps } from '@/types'
 
 type AppLayoutProps = {
@@ -17,7 +19,12 @@ type AppLayoutProps = {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { auth } = usePage<PageProps>().props
+  const { auth, flash } = usePage<PageProps>().props
+
+  useEffect(() => {
+    if (flash.notice) toast.success(flash.notice)
+    if (flash.alert) toast.error(flash.alert)
+  }, [flash.alert, flash.notice])
 
   const signOut = () => {
     router.delete('/users/sign_out')

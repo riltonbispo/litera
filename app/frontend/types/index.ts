@@ -8,6 +8,10 @@ export type PageProps = {
   auth: {
     user: CurrentUser | null
   }
+  flash: {
+    notice: string | null
+    alert: string | null
+  }
 }
 
 export type Book = {
