@@ -71,3 +71,5 @@ gem "pundit", "~> 2.5"
 gem "rspec-rails", "~> 8.0"
 
 gem "vite_rails", "~> 3.11"
+
+gem "kaminari", "~> 1.2"
