@@ -14,3 +14,4 @@ Catálogo coletivo de leituras. Rails 7+ (Ruby 3.3+), PostgreSQL, React + TypeSc
 - Não adicionar gems/libs sem justificar em uma linha.
 - Não escrever README sem eu pedir.
 - Quando houver decisão ambígua, listar as opções com trade-offs e perguntar antes de implementar.
+- UI: usar exclusivamente shadcn/ui (componentes em app/frontend/components/ui, adicionados via `npx shadcn@latest add <componente>`) com Tailwind CSS. Não criar componentes de UI do zero quando existir equivalente no shadcn. Não usar outras bibliotecas de componentes (MUI, Chakra, Bootstrap etc.). Usar os tokens/variáveis CSS do tema do shadcn para cores, sem valores hardcoded.
