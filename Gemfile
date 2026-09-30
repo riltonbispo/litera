@@ -64,3 +64,10 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "devise", "~> 5.0"
+gem "inertia_rails", "~> 3.22"
+gem "pundit", "~> 2.5"
+gem "rspec-rails", "~> 8.0"
+
+gem "vite_rails", "~> 3.11"
