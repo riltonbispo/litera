@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     sessions: "users/sessions"
   }
 
+  resource :book_search, only: :show
   resources :books, only: :index
 
   root "home#index"
