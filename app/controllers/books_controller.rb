@@ -16,8 +16,9 @@ class BooksController < ApplicationController
 
   def books_payload(books)
     {
-      books: BookSerializer.collection(books),
+      books: BookSerializer.collection(books, user: current_user),
       filters: normalized_filters,
+      filter_options: filter_options,
       meta: pagination_meta(books)
     }
   end
@@ -31,6 +32,13 @@ class BooksController < ApplicationController
       author: filter_params[:author].presence,
       genre: filter_params[:genre].presence,
       first_publish_year: filter_params[:first_publish_year].presence || filter_params[:year].presence
+    }
+  end
+
+  def filter_options
+    {
+      genres: Book.distinct.order(:genre).pluck(:genre),
+      years: Book.where.not(first_publish_year: nil).distinct.order(first_publish_year: :desc).pluck(:first_publish_year)
     }
   end
 
