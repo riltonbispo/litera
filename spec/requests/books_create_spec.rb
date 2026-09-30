@@ -16,6 +16,14 @@ RSpec.describe "Books create", type: :request do
     }
   end
 
+  it "requires authentication to create" do
+    expect {
+      post books_path, params: valid_params
+    }.not_to change(Book, :count)
+
+    expect(response).to redirect_to(new_user_session_path)
+  end
+
   it "requires authentication for the new page" do
     get new_book_path
 
@@ -55,6 +63,18 @@ RSpec.describe "Books create", type: :request do
 
     expect {
       post books_path, params: { book: valid_params[:book].merge(title: "") }
+    }.not_to change(Book, :count)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(inertia.component).to eq("Books/New")
+  end
+
+  it "does not create a duplicate for the same user" do
+    sign_in user
+    user.books.create!(valid_params.fetch(:book))
+
+    expect {
+      post books_path, params: valid_params
     }.not_to change(Book, :count)
 
     expect(response).to have_http_status(:unprocessable_content)

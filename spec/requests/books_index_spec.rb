@@ -53,6 +53,30 @@ RSpec.describe "Books index", type: :request do
     )
   end
 
+
+it "normalizes invalid pagination params" do
+  create_book
+
+  get books_path(format: :json), params: { page: -5, per_page: 500 }
+
+  expect(json_response.fetch("meta")).to include(
+    "current_page" => 1,
+    "per_page" => 50
+  )
+end
+
+it "marks editable books only for their owner" do
+  owned_book = create_book(title: "Owned", user: owner)
+  other_book = create_book(title: "Other", user: other_owner)
+  sign_in owner
+
+  get books_path(format: :json)
+
+  editability = json_response.fetch("books").to_h { |payload| [ payload.fetch("id"), payload.fetch("can_edit") ] }
+  expect(editability.fetch(owned_book.id)).to be(true)
+  expect(editability.fetch(other_book.id)).to be(false)
+end
+
   it "orders books by creation date descending" do
     create_book(title: "Older", created_at: 2.days.ago)
     create_book(title: "Newer", created_at: 1.day.ago)
@@ -88,6 +112,15 @@ RSpec.describe "Books index", type: :request do
 
     expect(json_response.fetch("books").map { |book| book.fetch("title") }).to eq([ "Memorias Postumas" ])
   end
+
+
+it "returns no results for invalid year filters" do
+  create_book
+
+  get books_path(format: :json), params: { first_publish_year: "18xx" }
+
+  expect(json_response.fetch("books")).to eq([])
+end
 
   it "combines filters" do
     create_book(title: "Dom Casmurro", author: "Machado de Assis", genre: "Romance", first_publish_year: 1899)

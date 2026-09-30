@@ -63,6 +63,24 @@ RSpec.describe Book, type: :model do
     expect(duplicate).not_to be_valid
   end
 
+
+it "rejects invalid optional OpenLibrary metadata" do
+  book = build_book(open_library_key: "x" * 256, cover_id: -1)
+
+  expect(book).not_to be_valid
+  expect(book.errors[:open_library_key]).to be_present
+  expect(book.errors[:cover_id]).to be_present
+end
+
+it "allows updating the same book without treating itself as a duplicate" do
+  book = build_book
+  book.save!
+
+  book.genre = "Classics"
+
+  expect(book).to be_valid
+end
+
   it "rejects future first publish years" do
     book = build_book(first_publish_year: Date.current.year + 1)
 

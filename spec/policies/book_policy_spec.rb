@@ -25,6 +25,13 @@ RSpec.describe BookPolicy do
     expect(described_class.new(nil, Book).create?).to be(false)
   end
 
+  it "uses create and update rules for new and edit aliases" do
+    expect(described_class.new(owner, Book).new?).to be(true)
+    expect(described_class.new(nil, Book).new?).to be(false)
+    expect(described_class.new(owner, book).edit?).to be(true)
+    expect(described_class.new(other_user, book).edit?).to be(false)
+  end
+
   it "allows only the owner to update and destroy" do
     owner_policy = described_class.new(owner, book)
     other_policy = described_class.new(other_user, book)
@@ -36,5 +43,13 @@ RSpec.describe BookPolicy do
     expect(other_policy.destroy?).to be(false)
     expect(guest_policy.update?).to be(false)
     expect(guest_policy.destroy?).to be(false)
+  end
+
+  it "resolves all books in the public scope" do
+    other_book = Book.create!(title: "Mrs Dalloway", author: "Virginia Woolf", genre: "Fiction", user: other_user)
+
+    resolved = described_class::Scope.new(nil, Book).resolve
+
+    expect(resolved).to contain_exactly(book, other_book)
   end
 end

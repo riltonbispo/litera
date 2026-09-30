@@ -89,6 +89,42 @@ RSpec.describe OpenLibrary::Search do
       }
   end
 
+
+it "treats 4xx responses as unavailable" do
+  stub_search(status: 429, body: "Too Many Requests")
+
+  expect { search.call(title: "Dom Casmurro") }
+    .to raise_error(OpenLibrary::UnavailableError) { |error|
+      expect(error.code).to eq("unavailable")
+      expect(error.user_message).to include("indisponivel")
+    }
+end
+
+it "treats non-timeout connection failures as unavailable" do
+  stub_request(:get, open_library_url)
+    .with(query: default_query)
+    .to_raise(Faraday::ConnectionFailed.new("network down"))
+
+  expect { search.call(title: "Dom Casmurro") }
+    .to raise_error(OpenLibrary::UnavailableError) { |error|
+      expect(error.code).to eq("unavailable")
+    }
+end
+
+it "treats missing docs as an invalid response" do
+  stub_search(status: 200, body: { num_found: 1 }.to_json)
+
+  expect { search.call(title: "Dom Casmurro") }
+    .to raise_error(OpenLibrary::InvalidResponseError, /missing docs/)
+end
+
+it "treats non-array docs as an invalid response" do
+  stub_search(status: 200, body: { docs: {} }.to_json)
+
+  expect { search.call(title: "Dom Casmurro") }
+    .to raise_error(OpenLibrary::InvalidResponseError, /not an array/)
+end
+
   it "normalizes books with missing author, year, subjects, and cover" do
     stub_search(
       status: 200,

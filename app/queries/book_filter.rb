@@ -20,7 +20,7 @@ class BookFilter
     return current_scope if author.blank?
 
     pattern = "%#{ActiveRecord::Base.sanitize_sql_like(author.downcase)}%"
-    current_scope.where("LOWER(author) LIKE ?", pattern)
+    current_scope.where("LOWER(author) LIKE ? ESCAPE '\\'", pattern)
   end
 
   def filter_by_genre(current_scope)
