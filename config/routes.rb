@@ -12,6 +12,8 @@ Rails.application.routes.draw do
   resource :book_search, only: :show
   resources :books, only: :index
 
+  get "ui-test" => "home#ui_test"
+
   root "home#index"
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
