@@ -97,7 +97,7 @@ export default function NewBook({ genre_options }: NewBookProps) {
       first_publish_year: result.year ? String(result.year) : '',
       genre: result.subjects[0] ?? '',
       open_library_key: result.key ?? '',
-      cover_id: '',
+      cover_id: result.cover_id ? String(result.cover_id) : '',
     })
   }
 

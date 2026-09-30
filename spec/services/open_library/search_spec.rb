@@ -44,6 +44,7 @@ RSpec.describe OpenLibrary::Search do
       author: "Machado de Assis",
       year: 1899,
       subjects: [ "Fiction", "Brazil" ],
+      cover_id: 12345,
       cover_url: "https://covers.openlibrary.org/b/id/12345-M.jpg"
     )
   end
@@ -109,6 +110,7 @@ RSpec.describe OpenLibrary::Search do
       author: nil,
       year: nil,
       subjects: [],
+      cover_id: nil,
       cover_url: nil
     )
   end

@@ -51,6 +51,7 @@ RSpec.describe "Book searches", type: :request do
           "author" => "Machado de Assis",
           "year" => 1899,
           "subjects" => [ "Fiction" ],
+          "cover_id" => 12345,
           "cover_url" => "https://covers.openlibrary.org/b/id/12345-M.jpg"
         }
       ],

@@ -49,6 +49,7 @@ export type OpenLibraryResult = {
   author: string | null
   year: number | null
   subjects: string[]
+  cover_id: number | null
   cover_url: string | null
 }
 
