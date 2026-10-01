@@ -1,17 +1,17 @@
 import { Head, Link } from '@inertiajs/react'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type ComponentProps } from 'react'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { cn } from 'cn'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { BookCard } from '@/components/books/BookCard'
 import { BookFilters } from '@/components/books/BookFilters'
-import { Button } from '@/components/ui/button'
+import type { VariantProps } from 'class-variance-authority'
+import { Button, type buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Pagination as PaginationRoot,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type Book, type BookFilters as BookFiltersType, type Pagination } from '@/types'
@@ -101,23 +101,62 @@ function BooksPagination({ meta, filters }: { meta: Pagination; filters: BookFil
       <PaginationContent>
         {meta.prev_page && (
           <PaginationItem>
-            <PaginationPrevious href={pageHref(meta.prev_page, filters)} text="Anterior" />
+            <PaginationNavLink
+              href={pageHref(meta.prev_page, filters)}
+              aria-label="Pagina anterior"
+              className="pl-1.5!"
+            >
+              <ChevronLeftIcon data-icon="inline-start" />
+              <span className="hidden sm:block">Anterior</span>
+            </PaginationNavLink>
           </PaginationItem>
         )}
         {pages.map((page) => (
           <PaginationItem key={page}>
-            <PaginationLink href={pageHref(page, filters)} isActive={page === meta.current_page}>
+            <PaginationNavLink
+              href={pageHref(page, filters)}
+              isActive={page === meta.current_page}
+              aria-current={page === meta.current_page ? 'page' : undefined}
+            >
               {page}
-            </PaginationLink>
+            </PaginationNavLink>
           </PaginationItem>
         ))}
         {meta.next_page && (
           <PaginationItem>
-            <PaginationNext href={pageHref(meta.next_page, filters)} text="Proxima" />
+            <PaginationNavLink
+              href={pageHref(meta.next_page, filters)}
+              aria-label="Proxima pagina"
+              className="pr-1.5!"
+            >
+              <span className="hidden sm:block">Proxima</span>
+              <ChevronRightIcon data-icon="inline-end" />
+            </PaginationNavLink>
           </PaginationItem>
         )}
       </PaginationContent>
     </PaginationRoot>
+  )
+}
+
+type PaginationNavLinkProps = {
+  href: string
+  isActive?: boolean
+} & VariantProps<typeof buttonVariants> &
+  Omit<ComponentProps<typeof Link>, 'href' | 'size'>
+
+function PaginationNavLink({ href, isActive, size = 'icon', variant, className, children, ...props }: PaginationNavLinkProps) {
+  return (
+    <Button asChild variant={variant ?? (isActive ? 'outline' : 'ghost')} size={size} className={cn(className)}>
+      <Link
+        href={href}
+        data-slot="pagination-link"
+        data-active={isActive}
+        {...props}
+      >
+        {children}
+      </Link>
+    </Button>
   )
 }
 
