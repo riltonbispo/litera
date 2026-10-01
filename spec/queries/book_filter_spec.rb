@@ -58,4 +58,16 @@ RSpec.describe BookFilter do
 
     expect(described_class.new(Book.all, first_publish_year: "18xx").call).to be_empty
   end
+
+  it "exposes the resolved filters, collapsing the year alias" do
+    filter = described_class.new(Book.all, author: "  Assis  ", genre: " Romance ", year: " 1937 ")
+
+    expect(filter.applied_filters).to eq(author: "Assis", genre: "Romance", first_publish_year: "1937")
+  end
+
+  it "exposes blank filters as nil so the form can fall back to its defaults" do
+    expect(described_class.new(Book.all, author: "   ").applied_filters).to eq(
+      author: nil, genre: nil, first_publish_year: nil
+    )
+  end
 end

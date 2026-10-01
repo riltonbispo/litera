@@ -5,9 +5,10 @@ class BooksController < ApplicationController
   def index
     authorize Book
 
-    books = BookFilter.new(policy_scope(Book).includes(:user), filter_params).call
+    filter = BookFilter.new(policy_scope(Book).includes(:user), filter_params)
+    books = filter.call
     paginated_books = books.page(page_param).per(per_page_param)
-    props = books_payload(paginated_books)
+    props = books_payload(paginated_books, filter)
 
     respond_to do |format|
       format.html { render inertia: "Books/Index", props: }
@@ -85,19 +86,23 @@ class BooksController < ApplicationController
     @book = Book.find(params[:id])
   end
 
-  def books_payload(books)
+  def books_payload(books, filter)
     {
       books: BookSerializer.collection(books, user: current_user),
-      filters: normalized_filters,
-      filter_options: filter_options,
+      filters: filter.applied_filters,
+      filter_options: book_filter_options.call,
       meta: pagination_meta(books)
     }
   end
 
   def form_options
     {
-      genre_options: Book.distinct.order(:genre).pluck(:genre)
+      genre_options: book_filter_options.call.fetch(:genres)
     }
+  end
+
+  def book_filter_options
+    @book_filter_options ||= BookFilterOptions.new(policy_scope(Book))
   end
 
   def book_params
@@ -106,21 +111,6 @@ class BooksController < ApplicationController
 
   def filter_params
     params.permit(:author, :genre, :first_publish_year, :year)
-  end
-
-  def normalized_filters
-    {
-      author: filter_params[:author].presence,
-      genre: filter_params[:genre].presence,
-      first_publish_year: filter_params[:first_publish_year].presence || filter_params[:year].presence
-    }
-  end
-
-  def filter_options
-    {
-      genres: Book.distinct.order(:genre).pluck(:genre),
-      years: Book.where.not(first_publish_year: nil).distinct.order(first_publish_year: :desc).pluck(:first_publish_year)
-    }
   end
 
   def page_param

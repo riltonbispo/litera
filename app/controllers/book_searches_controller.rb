@@ -1,6 +1,5 @@
 class BookSearchesController < ApplicationController
   MIN_TITLE_LENGTH = 2
-  MAX_LIMIT = 20
   RATE_LIMIT = 30
   RATE_LIMIT_WINDOW = 1.minute
 
@@ -32,7 +31,7 @@ class BookSearchesController < ApplicationController
   def limit_param
     value = params[:limit].to_i
     value = OpenLibrary::Search::DEFAULT_LIMIT if value < 1
-    [ value, MAX_LIMIT ].min
+    [ value, OpenLibrary::Search::MAX_LIMIT ].min
   end
 
   def status_payload(code, message)

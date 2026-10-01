@@ -12,6 +12,16 @@ class BookFilter
     filtered_scope.order(created_at: :desc, id: :desc)
   end
 
+  # The same resolution the query applies, so the controller does not re-derive it for the
+  # props echoed back to the filters component.
+  def applied_filters
+    {
+      author: author,
+      genre: genre,
+      first_publish_year: first_publish_year.presence
+    }
+  end
+
   private
 
   attr_reader :scope, :params

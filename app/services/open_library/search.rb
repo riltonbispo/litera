@@ -1,6 +1,7 @@
 module OpenLibrary
   class Search
     DEFAULT_LIMIT = Client::DEFAULT_LIMIT
+    MAX_LIMIT = 20
 
     def initialize(client: Client.new)
       @client = client
