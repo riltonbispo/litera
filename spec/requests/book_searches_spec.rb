@@ -102,4 +102,44 @@ end
       "message" => a_string_including("cadastrar o livro manualmente")
     )
   end
+
+  it "does not call OpenLibrary when the title is too short" do
+    sign_in user
+
+    get book_search_path(format: :json), params: { title: "D" }
+
+    expect(response).to have_http_status(:ok)
+    expect(a_request(:get, open_library_url)).not_to have_been_made
+    expect(json_response.fetch("results")).to eq([])
+    expect(json_response.fetch("status")).to include(
+      "code" => "empty_results",
+      "message" => a_string_including("2 letras")
+    )
+  end
+
+  it "does not call OpenLibrary when the title is missing or blank" do
+    sign_in user
+
+    get book_search_path(format: :json), params: { title: "   " }
+
+    expect(a_request(:get, open_library_url)).not_to have_been_made
+    expect(json_response.dig("status", "code")).to eq("empty_results")
+  end
+
+  it "rate limits repeated searches from the same user" do
+    sign_in user
+    stub_request(:get, open_library_url).with(query: query).to_return(status: 200, body: {
+      docs: [ { key: "/works/OL123W", title: "Dom Casmurro" } ]
+    }.to_json)
+
+    30.times do
+      get book_search_path(format: :json), params: { title: "Dom Casmurro", limit: 5 }
+      expect(response).to have_http_status(:ok)
+    end
+
+    get book_search_path(format: :json), params: { title: "Dom Casmurro", limit: 5 }
+
+    expect(response).to have_http_status(:too_many_requests)
+    expect(json_response.dig("status", "code")).to eq("rate_limited")
+  end
 end

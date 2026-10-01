@@ -38,6 +38,11 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
+
+  # Transactional fixtures reset primary key sequences between examples, so cache keys built
+  # from a record id (ActionController::RateLimiting) collide across examples and leak counters.
+  config.before(type: :request) { Rails.cache.clear }
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
     Rails.root.join('spec/fixtures')

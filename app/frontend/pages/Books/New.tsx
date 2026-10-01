@@ -31,6 +31,11 @@ type SearchPayload = {
   status: OpenLibraryStatus
 }
 
+const SEARCH_STATUS_TITLES: Record<string, string> = {
+  empty_results: 'Nenhum resultado',
+  rate_limited: 'Busca limitada',
+}
+
 export default function NewBook({ genre_options }: NewBookProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<OpenLibraryResult[]>([])
@@ -137,7 +142,7 @@ export default function NewBook({ genre_options }: NewBookProps) {
 
               {status && (
                 <Alert>
-                  <AlertTitle>{status.code === 'empty_results' ? 'Nenhum resultado' : 'Busca indisponivel'}</AlertTitle>
+                  <AlertTitle>{SEARCH_STATUS_TITLES[status.code] ?? 'Busca indisponivel'}</AlertTitle>
                   <AlertDescription>{status.message}</AlertDescription>
                 </Alert>
               )}

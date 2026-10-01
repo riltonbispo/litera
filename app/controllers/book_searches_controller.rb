@@ -1,11 +1,26 @@
 class BookSearchesController < ApplicationController
+  MIN_TITLE_LENGTH = 2
+  MAX_LIMIT = 20
+  RATE_LIMIT = 30
+  RATE_LIMIT_WINDOW = 1.minute
+
   before_action :authenticate_user!
+  rate_limit to: RATE_LIMIT, within: RATE_LIMIT_WINDOW, by: -> { current_user&.id || request.remote_ip },
+    with: -> {
+      render json: status_payload("rate_limited", "Busca temporariamente limitada. Tente de novo em instantes."),
+        status: :too_many_requests
+    }
 
   def show
+    if title_param.length < MIN_TITLE_LENGTH
+      return render json: status_payload("empty_results", "Digite pelo menos #{MIN_TITLE_LENGTH} letras do titulo.")
+    end
+
     results = OpenLibrary::Search.new.call(title: title_param, limit: limit_param)
-    render json: success_payload(results)
+
+    render json: { results: results.map(&:as_json), status: { code: "ok", message: nil } }
   rescue OpenLibrary::Error => e
-    render json: error_payload(e)
+    render json: status_payload(e.code, e.user_message)
   end
 
   private
@@ -17,25 +32,15 @@ class BookSearchesController < ApplicationController
   def limit_param
     value = params[:limit].to_i
     value = OpenLibrary::Search::DEFAULT_LIMIT if value < 1
-    [ value, 20 ].min
+    [ value, MAX_LIMIT ].min
   end
 
-  def success_payload(results)
-    {
-      results: results.map(&:as_json),
-      status: {
-        code: "ok",
-        message: nil
-      }
-    }
-  end
-
-  def error_payload(error)
+  def status_payload(code, message)
     {
       results: [],
       status: {
-        code: error.code,
-        message: error.user_message
+        code: code,
+        message: message
       }
     }
   end
