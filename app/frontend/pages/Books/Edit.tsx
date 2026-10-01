@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { baseError } from '@/lib/errors'
 import { type Book } from '@/types'
 
 type EditBookProps = {
@@ -114,10 +115,10 @@ export default function EditBook({ book, genre_options }: EditBookProps) {
                   </Alert>
                 )}
 
-                {errors['book.base'] && (
+                {baseError(errors, 'book') && (
                   <Alert variant="destructive">
                     <AlertTitle>Nao foi possivel salvar</AlertTitle>
-                    <AlertDescription>{errors['book.base']}</AlertDescription>
+                    <AlertDescription>{baseError(errors, 'book')}</AlertDescription>
                   </Alert>
                 )}
 

@@ -38,7 +38,7 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 type PaginationLinkProps = {
   isActive?: boolean
 } & VariantProps<typeof buttonVariants> &
-  React.ComponentProps<typeof Link>
+  Omit<React.ComponentProps<typeof Link>, "size">
 
 // Navigates through the Inertia Link so paginating keeps the SPA alive. data-active is omitted
 // when inactive: React stringifies booleans on data-* attributes, so `data-active={false}`
@@ -71,7 +71,7 @@ function PaginationPrevious({
   className,
   text = "Previous",
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: Omit<React.ComponentProps<typeof PaginationLink>, "text"> & { text?: string }) {
   return (
     <PaginationLink
       aria-label="Go to previous page"
@@ -89,7 +89,7 @@ function PaginationNext({
   className,
   text = "Next",
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: Omit<React.ComponentProps<typeof PaginationLink>, "text"> & { text?: string }) {
   return (
     <PaginationLink
       aria-label="Go to next page"

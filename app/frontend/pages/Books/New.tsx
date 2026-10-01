@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { baseError } from '@/lib/errors'
 import { type OpenLibraryResult, type OpenLibraryStatus } from '@/types'
 
 type NewBookProps = {
@@ -164,10 +165,10 @@ export default function NewBook({ genre_options }: NewBookProps) {
                   <img className="mb-4 aspect-[3/4] w-32 rounded-lg border object-cover" src={previewCoverUrl} alt="Previa da capa" />
                 )}
 
-                {errors['book.base'] && (
+                {baseError(errors, 'book') && (
                   <Alert variant="destructive">
                     <AlertTitle>Nao foi possivel cadastrar</AlertTitle>
-                    <AlertDescription>{errors['book.base']}</AlertDescription>
+                    <AlertDescription>{baseError(errors, 'book')}</AlertDescription>
                   </Alert>
                 )}
 
