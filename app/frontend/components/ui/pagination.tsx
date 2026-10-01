@@ -1,7 +1,9 @@
 import * as React from "react"
+import { Link } from "@inertiajs/react"
+import type { VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
-import { Button } from "@/components/ui/button"
+import { Button, type buttonVariants } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
@@ -35,26 +37,30 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">
+} & VariantProps<typeof buttonVariants> &
+  React.ComponentProps<typeof Link>
 
+// Navigates through the Inertia Link so paginating keeps the SPA alive. data-active is omitted
+// when inactive: React stringifies booleans on data-* attributes, so `data-active={false}`
+// would render data-active="false" and still match a [data-active] selector.
 function PaginationLink({
   className,
   isActive,
   size = "icon",
+  variant,
   ...props
 }: PaginationLinkProps) {
   return (
     <Button
       asChild
-      variant={isActive ? "outline" : "ghost"}
+      variant={variant ?? (isActive ? "outline" : "ghost")}
       size={size}
-      className={cn(className)}
+      className={className}
     >
-      <a
+      <Link
         aria-current={isActive ? "page" : undefined}
         data-slot="pagination-link"
-        data-active={isActive}
+        data-active={isActive ? "" : undefined}
         {...props}
       />
     </Button>
@@ -65,7 +71,7 @@ function PaginationPrevious({
   className,
   text = "Previous",
   ...props
-}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+}: React.ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink
       aria-label="Go to previous page"
@@ -83,7 +89,7 @@ function PaginationNext({
   className,
   text = "Next",
   ...props
-}: React.ComponentProps<typeof PaginationLink> & { text?: string }) {
+}: React.ComponentProps<typeof PaginationLink>) {
   return (
     <PaginationLink
       aria-label="Go to next page"
@@ -111,8 +117,7 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <MoreHorizontalIcon
-      />
+      <MoreHorizontalIcon />
       <span className="sr-only">More pages</span>
     </span>
   )

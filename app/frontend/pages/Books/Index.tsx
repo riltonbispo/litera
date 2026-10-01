@@ -1,17 +1,17 @@
 import { Head, Link } from '@inertiajs/react'
-import { useCallback, useState, type ComponentProps } from 'react'
+import { useCallback, useState } from 'react'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import { cn } from 'cn'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { BookCard } from '@/components/books/BookCard'
 import { BookFilters } from '@/components/books/BookFilters'
-import type { VariantProps } from 'class-variance-authority'
-import { Button, type buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Pagination as PaginationRoot,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
+  PaginationLink,
 } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type Book, type BookFilters as BookFiltersType, type Pagination } from '@/types'
@@ -94,43 +94,44 @@ function BookGridSkeleton() {
 }
 
 function BooksPagination({ meta, filters }: { meta: Pagination; filters: BookFiltersType }) {
-  const pages = Array.from({ length: meta.total_pages }, (_, index) => index + 1)
-
   return (
     <PaginationRoot>
       <PaginationContent>
         {meta.prev_page && (
           <PaginationItem>
-            <PaginationNavLink
+            <PaginationLink
               href={pageHref(meta.prev_page, filters)}
               size="default"
               aria-label="Página anterior"
             >
               <ChevronLeftIcon data-icon="inline-start" />
               <span className="hidden sm:block">Anterior</span>
-            </PaginationNavLink>
+            </PaginationLink>
           </PaginationItem>
         )}
-        {pages.map((page) => (
-          <PaginationItem key={page}>
-            <PaginationNavLink
-              href={pageHref(page, filters)}
-              isActive={page === meta.current_page}
-            >
-              {page}
-            </PaginationNavLink>
-          </PaginationItem>
-        ))}
+        {pageWindow(meta.current_page, meta.total_pages).map((page, index) =>
+          page === ELLIPSIS ? (
+            <PaginationItem key={`ellipsis-${index}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={page}>
+              <PaginationLink href={pageHref(page, filters)} isActive={page === meta.current_page}>
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          )
+        )}
         {meta.next_page && (
           <PaginationItem>
-            <PaginationNavLink
+            <PaginationLink
               href={pageHref(meta.next_page, filters)}
               size="default"
               aria-label="Próxima página"
             >
               <span className="hidden sm:block">Próxima</span>
               <ChevronRightIcon data-icon="inline-end" />
-            </PaginationNavLink>
+            </PaginationLink>
           </PaginationItem>
         )}
       </PaginationContent>
@@ -138,45 +139,33 @@ function BooksPagination({ meta, filters }: { meta: Pagination; filters: BookFil
   )
 }
 
-type PaginationNavLinkProps = {
-  href: string
-  isActive?: boolean
-} & VariantProps<typeof buttonVariants> &
-  Omit<ComponentProps<typeof Link>, 'href' | 'size'>
+const ELLIPSIS = 0
+const WINDOW = 1
 
 /**
- * Drop-in replacement for the shadcn PaginationLink that keeps the exact same
- * styles (buttonVariants, outline when active, ghost otherwise, data-active and
- * aria-current) while navigating through the Inertia Link instead of a plain
- * anchor, so paginating does not trigger a full page reload.
+ * Renders at most 2 * WINDOW + 5 items (first, last, the pages around the current one and up to
+ * two ellipses) so the row does not grow with the size of the catalog.
  */
-function PaginationNavLink({
-  href,
-  isActive,
-  size = 'icon',
-  variant,
-  className,
-  children,
-  ...props
-}: PaginationNavLinkProps) {
-  return (
-    <Button
-      asChild
-      variant={variant ?? (isActive ? 'outline' : 'ghost')}
-      size={size}
-      className={cn(className)}
-    >
-      <Link
-        href={href}
-        aria-current={isActive ? 'page' : undefined}
-        data-slot="pagination-link"
-        data-active={isActive}
-        {...props}
-      >
-        {children}
-      </Link>
-    </Button>
-  )
+function pageWindow(current: number, total: number): number[] {
+  if (total <= 2 * WINDOW + 5) {
+    return Array.from({ length: total }, (_, index) => index + 1)
+  }
+
+  const pages = new Set<number>([ 1, total ])
+  for (let page = current - WINDOW; page <= current + WINDOW; page += 1) {
+    if (page >= 1 && page <= total) pages.add(page)
+  }
+
+  const sorted = [...pages].sort((left, right) => left - right)
+  const withGaps: number[] = []
+
+  sorted.forEach((page, index) => {
+    const previous = sorted[index - 1]
+    if (previous !== undefined && page - previous > 1) withGaps.push(ELLIPSIS)
+    withGaps.push(page)
+  })
+
+  return withGaps
 }
 
 function pageHref(page: number, filters: BookFiltersType) {
