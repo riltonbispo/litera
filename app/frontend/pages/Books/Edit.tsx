@@ -116,6 +116,13 @@ export default function EditBook({ book, genre_options }: EditBookProps) {
               )}
 
               <form id="edit_book_form" className="space-y-4" onSubmit={submit}>
+                {errors['book.base'] && (
+                  <Alert variant="destructive">
+                    <AlertTitle>Nao foi possivel salvar</AlertTitle>
+                    <AlertDescription>{errors['book.base']}</AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="book_title">Titulo</Label>
                   <Input

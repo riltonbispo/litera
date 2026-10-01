@@ -26,9 +26,9 @@ class BooksController < ApplicationController
     authorize @book
 
     if @book.save
-      redirect_to books_path, notice: "Livro cadastrado com sucesso."
+      redirect_to books_path, notice: "Livro cadastrado com sucesso.", status: :see_other
     else
-      render inertia: "Books/New", props: form_options, status: :unprocessable_entity
+      render inertia: "Books/New", props: form_options.merge(errors: inertia_errors(@book, scope: "book")), status: :unprocessable_entity
     end
   end
 
@@ -42,9 +42,12 @@ class BooksController < ApplicationController
     authorize @book
 
     if @book.update(book_params)
-      redirect_to books_path, notice: "Livro atualizado com sucesso."
+      redirect_to books_path, notice: "Livro atualizado com sucesso.", status: :see_other
     else
-      render inertia: "Books/Edit", props: form_options.merge(book: BookSerializer.new(@book, user: current_user).as_json), status: :unprocessable_entity
+      render inertia: "Books/Edit", props: form_options.merge(
+        book: BookSerializer.new(@book, user: current_user).as_json,
+        errors: inertia_errors(@book, scope: "book")
+      ), status: :unprocessable_entity
     end
   end
 

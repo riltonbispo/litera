@@ -160,6 +160,13 @@ export default function NewBook({ genre_options }: NewBookProps) {
                   <img className="mb-4 aspect-[3/4] w-32 rounded-lg border object-cover" src={previewCoverUrl} alt="Previa da capa" />
                 )}
 
+                {errors['book.base'] && (
+                  <Alert variant="destructive">
+                    <AlertTitle>Nao foi possivel cadastrar</AlertTitle>
+                    <AlertDescription>{errors['book.base']}</AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="book_title">Titulo</Label>
                   <Input

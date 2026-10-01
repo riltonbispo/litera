@@ -67,6 +67,17 @@ RSpec.describe "Books create", type: :request do
 
     expect(response).to have_http_status(:unprocessable_content)
     expect(inertia.component).to eq("Books/New")
+    expect(inertia.props[:errors]).to include("book.title")
+  end
+
+  it "exposes the year error when the year is not a number" do
+    sign_in user
+
+    expect {
+      post books_path, params: { book: valid_params[:book].merge(first_publish_year: "abcd") }
+    }.not_to change(Book, :count)
+
+    expect(inertia.props[:errors]).to include("book.first_publish_year")
   end
 
   it "does not create a duplicate for the same user" do
@@ -79,5 +90,6 @@ RSpec.describe "Books create", type: :request do
 
     expect(response).to have_http_status(:unprocessable_content)
     expect(inertia.component).to eq("Books/New")
+    expect(inertia.props[:errors]).to include("book.base")
   end
 end

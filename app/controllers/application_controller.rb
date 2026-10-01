@@ -22,6 +22,15 @@ class ApplicationController < ActionController::Base
     }
   end
 
+  # inertia_rails does not derive the `errors` prop from the model, so without this the client
+  # receives `errors: {}` and treats a 422 as success. Keys are flattened and prefixed with the form
+  # scope (e.g. "book.title") because Inertia reads errors from a flat scope.
+  def inertia_errors(record, scope: nil)
+    record.errors.to_hash.transform_keys do |attribute|
+      scope ? "#{scope}.#{attribute}" : attribute.to_s
+    end
+  end
+
   def user_not_authorized
     message = "Voce nao tem permissao para essa acao."
 
