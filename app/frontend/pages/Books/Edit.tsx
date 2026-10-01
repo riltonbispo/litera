@@ -56,14 +56,12 @@ export default function EditBook({ book, genre_options }: EditBookProps) {
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     patch(`/books/${book.id}`, {
-      onSuccess: () => toast.success('Livro atualizado com sucesso.'),
       onError: () => toast.error('Revise os campos do livro.'),
     })
   }
 
   const removeBook = () => {
     router.delete(`/books/${book.id}`, {
-      onSuccess: () => toast.success('Livro removido com sucesso.'),
       onError: () => toast.error('Nao foi possivel remover o livro.'),
     })
   }

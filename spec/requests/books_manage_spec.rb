@@ -114,6 +114,15 @@ end
     expect(book.reload.title).to eq("Dom Casmurro")
   end
 
+  it "reports the success through the shared flash prop on update" do
+    sign_in owner
+
+    patch book_path(book), params: valid_params
+    follow_redirect!
+
+    expect(inertia.props.fetch("flash")).to include("notice" => "Livro atualizado com sucesso.")
+  end
+
   it "destroys the owner's book" do
     sign_in owner
 
@@ -122,6 +131,15 @@ end
     }.to change(Book, :count).by(-1)
 
     expect(response).to redirect_to(books_path)
+  end
+
+  it "reports the success through the shared flash prop on destroy" do
+    sign_in owner
+
+    delete book_path(book)
+    follow_redirect!
+
+    expect(inertia.props.fetch("flash")).to include("notice" => "Livro removido com sucesso.")
   end
 
   it "does not destroy another user's book" do

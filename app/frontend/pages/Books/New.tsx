@@ -104,7 +104,6 @@ export default function NewBook({ genre_options }: NewBookProps) {
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     post('/books', {
-      onSuccess: () => toast.success('Livro cadastrado com sucesso.'),
       onError: () => toast.error('Revise os campos do livro.'),
     })
   }

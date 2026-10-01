@@ -58,6 +58,15 @@ RSpec.describe "Books create", type: :request do
     )
   end
 
+  it "reports the success through the shared flash prop" do
+    sign_in user
+
+    post books_path, params: valid_params
+    follow_redirect!
+
+    expect(inertia.props.fetch("flash")).to include("notice" => "Livro cadastrado com sucesso.")
+  end
+
   it "renders validation errors without creating a book" do
     sign_in user
 
