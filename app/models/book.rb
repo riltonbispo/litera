@@ -1,4 +1,6 @@
 class Book < ApplicationRecord
+  DUPLICATE_MESSAGE = "Book already exists in your catalog"
+
   belongs_to :user
 
   before_validation :normalize_text_attributes
@@ -34,6 +36,6 @@ class Book < ApplicationRecord
                     .where(first_publish_year:)
     duplicate = duplicate.where.not(id:) if persisted?
 
-    errors.add(:base, "Book already exists in your catalog") if duplicate.exists?
+    errors.add(:base, DUPLICATE_MESSAGE) if duplicate.exists?
   end
 end

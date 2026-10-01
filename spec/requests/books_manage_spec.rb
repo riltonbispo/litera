@@ -114,6 +114,17 @@ end
     expect(book.reload.title).to eq("Dom Casmurro")
   end
 
+  it "reports a duplicate lost to a concurrent insert as a validation error" do
+    sign_in owner
+    allow_any_instance_of(Book).to receive(:_update_record).and_raise(ActiveRecord::RecordNotUnique)
+
+    patch book_path(book), params: valid_params(first_publish_year: 1881)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(inertia.props[:errors]).to include("book.base")
+    expect(book.reload.first_publish_year).to eq(1899)
+  end
+
   it "reports the success through the shared flash prop on update" do
     sign_in owner
 

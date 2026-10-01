@@ -101,4 +101,16 @@ RSpec.describe "Books create", type: :request do
     expect(inertia.component).to eq("Books/New")
     expect(inertia.props[:errors]).to include("book.base")
   end
+
+  it "reports a duplicate lost to a concurrent insert as a validation error" do
+    sign_in user
+    allow_any_instance_of(Book).to receive(:_create_record).and_raise(ActiveRecord::RecordNotUnique)
+
+    expect {
+      post books_path, params: valid_params
+    }.not_to change(Book, :count)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(inertia.props[:errors]).to include("book.base")
+  end
 end

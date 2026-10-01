@@ -25,7 +25,7 @@ class BooksController < ApplicationController
     @book = current_user.books.build(book_params)
     authorize @book
 
-    if @book.save
+    if save_book
       redirect_to books_path, notice: "Livro cadastrado com sucesso.", status: :see_other
     else
       render inertia: "Books/New", props: form_options.merge(errors: inertia_errors(@book, scope: "book")), status: :unprocessable_entity
@@ -41,7 +41,7 @@ class BooksController < ApplicationController
   def update
     authorize @book
 
-    if @book.update(book_params)
+    if update_book
       redirect_to books_path, notice: "Livro atualizado com sucesso.", status: :see_other
     else
       render inertia: "Books/Edit", props: form_options.merge(
@@ -59,6 +59,27 @@ class BooksController < ApplicationController
   end
 
   private
+
+  # The unique functional index on (user_id, lower(title), lower(author), coalesce(year)) is
+  # what actually guarantees uniqueness. unique_catalog_entry_per_user is a SELECT that cannot
+  # observe a concurrent insert, so two racing requests both pass validation and the loser's
+  # INSERT raises RecordNotUnique. Report that as the same validation error instead of a 500.
+  def save_book
+    @book.save
+  rescue ActiveRecord::RecordNotUnique
+    register_duplicate_error
+  end
+
+  def update_book
+    @book.update(book_params)
+  rescue ActiveRecord::RecordNotUnique
+    register_duplicate_error
+  end
+
+  def register_duplicate_error
+    @book.errors.add(:base, Book::DUPLICATE_MESSAGE)
+    false
+  end
 
   def set_book
     @book = Book.find(params[:id])
