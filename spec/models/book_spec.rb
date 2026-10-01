@@ -64,7 +64,7 @@ RSpec.describe Book, type: :model do
   end
 
 
-it "rejects invalid optional OpenLibrary metadata" do
+  it "rejects invalid optional OpenLibrary metadata" do
   book = build_book(open_library_key: "x" * 256, cover_id: -1)
 
   expect(book).not_to be_valid
@@ -72,7 +72,7 @@ it "rejects invalid optional OpenLibrary metadata" do
   expect(book.errors[:cover_id]).to be_present
 end
 
-it "allows updating the same book without treating itself as a duplicate" do
+  it "allows updating the same book without treating itself as a duplicate" do
   book = build_book
   book.save!
 

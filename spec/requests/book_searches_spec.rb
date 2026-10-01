@@ -62,8 +62,7 @@ RSpec.describe "Book searches", type: :request do
     )
   end
 
-
-it "clamps large limits" do
+  it "clamps large limits" do
   sign_in user
   stub_request(:get, open_library_url).with(query: query.merge(limit: "20")).to_return(status: 200, body: {
     docs: [ { key: "/works/OL123W", title: "Dom Casmurro" } ]
@@ -75,7 +74,7 @@ it "clamps large limits" do
   expect(json_response.fetch("results").first).to include("key" => "/works/OL123W")
 end
 
-it "returns a manual-entry friendly JSON payload for timeouts" do
+  it "returns a manual-entry friendly JSON payload for timeouts" do
   sign_in user
   stub_request(:get, open_library_url).with(query: query).to_timeout
 

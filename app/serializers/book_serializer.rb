@@ -1,6 +1,4 @@
 class BookSerializer
-  COVER_BASE_URL = "https://covers.openlibrary.org/b/id"
-
   def self.collection(books, user: nil)
     books.map { |book| new(book, user:).as_json }
   end
@@ -33,6 +31,6 @@ class BookSerializer
   def cover_url
     return if book.cover_id.blank?
 
-    "#{COVER_BASE_URL}/#{book.cover_id}-M.jpg"
+    "#{OpenLibrary::COVER_BASE_URL}/#{book.cover_id}-M.jpg"
   end
 end

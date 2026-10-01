@@ -36,15 +36,14 @@ RSpec.describe "Books manage", type: :request do
     expect(response).to redirect_to(new_user_session_path)
   end
 
-
-it "requires authentication for update" do
+  it "requires authentication for update" do
   patch book_path(book), params: valid_params
 
   expect(response).to redirect_to(new_user_session_path)
   expect(book.reload.title).to eq("Dom Casmurro")
 end
 
-it "requires authentication for destroy" do
+  it "requires authentication for destroy" do
   expect {
     delete book_path(book)
   }.not_to change(Book, :count)
@@ -93,8 +92,7 @@ end
     expect(book.reload.title).to eq("Dom Casmurro")
   end
 
-
-it "returns JSON forbidden for non-owner update" do
+  it "returns JSON forbidden for non-owner update" do
   sign_in other_user
 
   patch book_path(book, format: :json), params: valid_params(title: "Quincas Borba")

@@ -38,16 +38,22 @@ type BookForm = {
   }
 }
 
+// first_publish_year and cover_id are integers on the record but strings in the form, so every
+// optional numeric field needs the same widening here.
+function bookFormFrom(book: Book): BookForm['book'] {
+  return {
+    title: book.title,
+    author: book.author,
+    first_publish_year: book.first_publish_year ? String(book.first_publish_year) : '',
+    genre: book.genre,
+    open_library_key: book.open_library_key ?? '',
+    cover_id: book.cover_id ? String(book.cover_id) : '',
+  }
+}
+
 export default function EditBook({ book, genre_options }: EditBookProps) {
   const { data, setData, patch, processing, errors } = useForm<BookForm>({
-    book: {
-      title: book.title,
-      author: book.author,
-      first_publish_year: book.first_publish_year ? String(book.first_publish_year) : '',
-      genre: book.genre,
-      open_library_key: book.open_library_key ?? '',
-      cover_id: book.cover_id ? String(book.cover_id) : '',
-    },
+    book: bookFormFrom(book),
   })
 
   const knownGenres = useMemo(() => {

@@ -89,8 +89,7 @@ RSpec.describe OpenLibrary::Search do
       }
   end
 
-
-it "treats 4xx responses as unavailable" do
+  it "treats 4xx responses as unavailable" do
   stub_search(status: 429, body: "Too Many Requests")
 
   expect { search.call(title: "Dom Casmurro") }
@@ -100,7 +99,7 @@ it "treats 4xx responses as unavailable" do
     }
 end
 
-it "treats non-timeout connection failures as unavailable" do
+  it "treats non-timeout connection failures as unavailable" do
   stub_request(:get, open_library_url)
     .with(query: default_query)
     .to_raise(Faraday::ConnectionFailed.new("network down"))
@@ -111,28 +110,28 @@ it "treats non-timeout connection failures as unavailable" do
     }
 end
 
-it "treats a payload that is not an object as an invalid response" do
+  it "treats a payload that is not an object as an invalid response" do
   stub_search(status: 200, body: [ { key: "/works/OL123W" } ].to_json)
 
   expect { search.call(title: "Dom Casmurro") }
     .to raise_error(OpenLibrary::InvalidResponseError, /not an object/)
 end
 
-it "treats a scalar payload as an invalid response" do
+  it "treats a scalar payload as an invalid response" do
   stub_search(status: 200, body: "not json at all".to_json)
 
   expect { search.call(title: "Dom Casmurro") }
     .to raise_error(OpenLibrary::InvalidResponseError)
 end
 
-it "treats missing docs as an invalid response" do
+  it "treats missing docs as an invalid response" do
   stub_search(status: 200, body: { num_found: 1 }.to_json)
 
   expect { search.call(title: "Dom Casmurro") }
     .to raise_error(OpenLibrary::InvalidResponseError, /missing docs/)
 end
 
-it "treats non-array docs as an invalid response" do
+  it "treats non-array docs as an invalid response" do
   stub_search(status: 200, body: { docs: {} }.to_json)
 
   expect { search.call(title: "Dom Casmurro") }

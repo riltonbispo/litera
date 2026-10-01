@@ -12,6 +12,7 @@ export type PageProps = {
     notice: string | null
     alert: string | null
   }
+  errors: Record<string, string>
 }
 
 export type Book = {

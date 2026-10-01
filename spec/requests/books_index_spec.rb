@@ -53,8 +53,7 @@ RSpec.describe "Books index", type: :request do
     )
   end
 
-
-it "normalizes invalid pagination params" do
+  it "normalizes invalid pagination params" do
   create_book
 
   get books_path(format: :json), params: { page: -5, per_page: 500 }
@@ -65,7 +64,7 @@ it "normalizes invalid pagination params" do
   )
 end
 
-it "marks editable books only for their owner" do
+  it "marks editable books only for their owner" do
   owned_book = create_book(title: "Owned", user: owner)
   other_book = create_book(title: "Other", user: other_owner)
   sign_in owner
@@ -113,8 +112,7 @@ end
     expect(json_response.fetch("books").map { |book| book.fetch("title") }).to eq([ "Memorias Postumas" ])
   end
 
-
-it "returns no results for invalid year filters" do
+  it "returns no results for invalid year filters" do
   create_book
 
   get books_path(format: :json), params: { first_publish_year: "18xx" }

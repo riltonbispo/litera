@@ -1,7 +1,5 @@
 module OpenLibrary
   Result = Data.define(:key, :title, :author, :year, :subjects, :cover_id, :cover_url) do
-    COVER_BASE_URL = "https://covers.openlibrary.org/b/id"
-
     def self.from_document(document)
       cover_id = normalize_integer(document["cover_i"])
 
