@@ -9,6 +9,8 @@ module OpenLibrary
 
     def call(title:, limit: DEFAULT_LIMIT)
       payload = client.search(title:, limit:)
+      raise InvalidResponseError, "OpenLibrary response is not an object" unless payload.is_a?(Hash)
+
       documents = payload.fetch("docs") { raise InvalidResponseError, "OpenLibrary response is missing docs" }
       raise InvalidResponseError, "OpenLibrary docs is not an array" unless documents.is_a?(Array)
       raise EmptyResultsError if documents.empty?

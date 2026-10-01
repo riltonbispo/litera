@@ -111,6 +111,20 @@ it "treats non-timeout connection failures as unavailable" do
     }
 end
 
+it "treats a payload that is not an object as an invalid response" do
+  stub_search(status: 200, body: [ { key: "/works/OL123W" } ].to_json)
+
+  expect { search.call(title: "Dom Casmurro") }
+    .to raise_error(OpenLibrary::InvalidResponseError, /not an object/)
+end
+
+it "treats a scalar payload as an invalid response" do
+  stub_search(status: 200, body: "not json at all".to_json)
+
+  expect { search.call(title: "Dom Casmurro") }
+    .to raise_error(OpenLibrary::InvalidResponseError)
+end
+
 it "treats missing docs as an invalid response" do
   stub_search(status: 200, body: { num_found: 1 }.to_json)
 
