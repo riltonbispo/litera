@@ -121,84 +121,86 @@ export default function EditBook({ book, genre_options }: EditBookProps) {
                   </Alert>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="book_title">Titulo</Label>
-                  <Input
-                    id="book_title"
-                    value={data.book.title}
-                    onChange={(event) => setData('book', { ...data.book, title: event.currentTarget.value })}
-                    required
-                    aria-invalid={Boolean(errors['book.title'])}
-                  />
-                  {errors['book.title'] && <p className="text-sm text-destructive">{errors['book.title']}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="book_author">Autor</Label>
-                  <Input
-                    id="book_author"
-                    value={data.book.author}
-                    onChange={(event) => setData('book', { ...data.book, author: event.currentTarget.value })}
-                    required
-                    aria-invalid={Boolean(errors['book.author'])}
-                  />
-                  {errors['book.author'] && <p className="text-sm text-destructive">{errors['book.author']}</p>}
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
+                <fieldset disabled={!book.can_edit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="book_year">Ano</Label>
+                    <Label htmlFor="book_title">Titulo</Label>
                     <Input
-                      id="book_year"
-                      value={data.book.first_publish_year}
-                      onChange={(event) => setData('book', { ...data.book, first_publish_year: event.currentTarget.value })}
-                      inputMode="numeric"
-                      aria-invalid={Boolean(errors['book.first_publish_year'])}
-                    />
-                    {errors['book.first_publish_year'] && (
-                      <p className="text-sm text-destructive">{errors['book.first_publish_year']}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="book_genre">Genero</Label>
-                    <Input
-                      id="book_genre"
-                      value={data.book.genre}
-                      onChange={(event) => setData('book', { ...data.book, genre: event.currentTarget.value })}
-                      list="known_genres"
+                      id="book_title"
+                      value={data.book.title}
+                      onChange={(event) => setData('book', { ...data.book, title: event.currentTarget.value })}
                       required
-                      aria-invalid={Boolean(errors['book.genre'])}
+                      aria-invalid={Boolean(errors['book.title'])}
                     />
-                    <datalist id="known_genres">
-                      {knownGenres.map((genre) => <option key={genre} value={genre} />)}
-                    </datalist>
-                    {errors['book.genre'] && <p className="text-sm text-destructive">{errors['book.genre']}</p>}
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="book_open_library_key">OpenLibrary key</Label>
-                    <Input
-                      id="book_open_library_key"
-                      value={data.book.open_library_key}
-                      onChange={(event) => setData('book', { ...data.book, open_library_key: event.currentTarget.value })}
-                    />
+                    {errors['book.title'] && <p className="text-sm text-destructive">{errors['book.title']}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="book_cover_id">Cover ID</Label>
+                    <Label htmlFor="book_author">Autor</Label>
                     <Input
-                      id="book_cover_id"
-                      value={data.book.cover_id}
-                      onChange={(event) => setData('book', { ...data.book, cover_id: event.currentTarget.value })}
-                      inputMode="numeric"
-                      aria-invalid={Boolean(errors['book.cover_id'])}
+                      id="book_author"
+                      value={data.book.author}
+                      onChange={(event) => setData('book', { ...data.book, author: event.currentTarget.value })}
+                      required
+                      aria-invalid={Boolean(errors['book.author'])}
                     />
-                    {errors['book.cover_id'] && <p className="text-sm text-destructive">{errors['book.cover_id']}</p>}
+                    {errors['book.author'] && <p className="text-sm text-destructive">{errors['book.author']}</p>}
                   </div>
-                </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="book_year">Ano</Label>
+                      <Input
+                        id="book_year"
+                        value={data.book.first_publish_year}
+                        onChange={(event) => setData('book', { ...data.book, first_publish_year: event.currentTarget.value })}
+                        inputMode="numeric"
+                        aria-invalid={Boolean(errors['book.first_publish_year'])}
+                      />
+                      {errors['book.first_publish_year'] && (
+                        <p className="text-sm text-destructive">{errors['book.first_publish_year']}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="book_genre">Genero</Label>
+                      <Input
+                        id="book_genre"
+                        value={data.book.genre}
+                        onChange={(event) => setData('book', { ...data.book, genre: event.currentTarget.value })}
+                        list="known_genres"
+                        required
+                        aria-invalid={Boolean(errors['book.genre'])}
+                      />
+                      <datalist id="known_genres">
+                        {knownGenres.map((genre) => <option key={genre} value={genre} />)}
+                      </datalist>
+                      {errors['book.genre'] && <p className="text-sm text-destructive">{errors['book.genre']}</p>}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="book_open_library_key">OpenLibrary key</Label>
+                      <Input
+                        id="book_open_library_key"
+                        value={data.book.open_library_key}
+                        onChange={(event) => setData('book', { ...data.book, open_library_key: event.currentTarget.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="book_cover_id">Cover ID</Label>
+                      <Input
+                        id="book_cover_id"
+                        value={data.book.cover_id}
+                        onChange={(event) => setData('book', { ...data.book, cover_id: event.currentTarget.value })}
+                        inputMode="numeric"
+                        aria-invalid={Boolean(errors['book.cover_id'])}
+                      />
+                      {errors['book.cover_id'] && <p className="text-sm text-destructive">{errors['book.cover_id']}</p>}
+                    </div>
+                  </div>
+                </fieldset>
               </CardContent>
               <CardFooter className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:justify-between">
                 <div className="flex gap-2">
