@@ -103,8 +103,8 @@ function BooksPagination({ meta, filters }: { meta: Pagination; filters: BookFil
           <PaginationItem>
             <PaginationNavLink
               href={pageHref(meta.prev_page, filters)}
-              aria-label="Pagina anterior"
-              className="pl-1.5!"
+              size="default"
+              aria-label="Página anterior"
             >
               <ChevronLeftIcon data-icon="inline-start" />
               <span className="hidden sm:block">Anterior</span>
@@ -116,7 +116,6 @@ function BooksPagination({ meta, filters }: { meta: Pagination; filters: BookFil
             <PaginationNavLink
               href={pageHref(page, filters)}
               isActive={page === meta.current_page}
-              aria-current={page === meta.current_page ? 'page' : undefined}
             >
               {page}
             </PaginationNavLink>
@@ -126,10 +125,10 @@ function BooksPagination({ meta, filters }: { meta: Pagination; filters: BookFil
           <PaginationItem>
             <PaginationNavLink
               href={pageHref(meta.next_page, filters)}
-              aria-label="Proxima pagina"
-              className="pr-1.5!"
+              size="default"
+              aria-label="Próxima página"
             >
-              <span className="hidden sm:block">Proxima</span>
+              <span className="hidden sm:block">Próxima</span>
               <ChevronRightIcon data-icon="inline-end" />
             </PaginationNavLink>
           </PaginationItem>
@@ -145,11 +144,31 @@ type PaginationNavLinkProps = {
 } & VariantProps<typeof buttonVariants> &
   Omit<ComponentProps<typeof Link>, 'href' | 'size'>
 
-function PaginationNavLink({ href, isActive, size = 'icon', variant, className, children, ...props }: PaginationNavLinkProps) {
+/**
+ * Drop-in replacement for the shadcn PaginationLink that keeps the exact same
+ * styles (buttonVariants, outline when active, ghost otherwise, data-active and
+ * aria-current) while navigating through the Inertia Link instead of a plain
+ * anchor, so paginating does not trigger a full page reload.
+ */
+function PaginationNavLink({
+  href,
+  isActive,
+  size = 'icon',
+  variant,
+  className,
+  children,
+  ...props
+}: PaginationNavLinkProps) {
   return (
-    <Button asChild variant={variant ?? (isActive ? 'outline' : 'ghost')} size={size} className={cn(className)}>
+    <Button
+      asChild
+      variant={variant ?? (isActive ? 'outline' : 'ghost')}
+      size={size}
+      className={cn(className)}
+    >
       <Link
         href={href}
+        aria-current={isActive ? 'page' : undefined}
         data-slot="pagination-link"
         data-active={isActive}
         {...props}
