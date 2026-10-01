@@ -105,15 +105,15 @@ export default function EditBook({ book, genre_options }: EditBookProps) {
               <CardTitle>Dados do livro</CardTitle>
               <CardDescription>Somente voce pode editar ou remover este cadastro.</CardDescription>
             </CardHeader>
-            <CardContent>
-              {!book.can_edit && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertTitle>Acesso restrito</AlertTitle>
-                  <AlertDescription>Este livro nao esta disponivel para edicao.</AlertDescription>
-                </Alert>
-              )}
+            <form className="flex flex-col gap-(--card-spacing)" onSubmit={submit}>
+              <CardContent className="space-y-4">
+                {!book.can_edit && (
+                  <Alert variant="destructive">
+                    <AlertTitle>Acesso restrito</AlertTitle>
+                    <AlertDescription>Este livro nao esta disponivel para edicao.</AlertDescription>
+                  </Alert>
+                )}
 
-              <form id="edit_book_form" className="space-y-4" onSubmit={submit}>
                 {errors['book.base'] && (
                   <Alert variant="destructive">
                     <AlertTitle>Nao foi possivel salvar</AlertTitle>
@@ -199,34 +199,34 @@ export default function EditBook({ book, genre_options }: EditBookProps) {
                     {errors['book.cover_id'] && <p className="text-sm text-destructive">{errors['book.cover_id']}</p>}
                   </div>
                 </div>
-              </form>
-            </CardContent>
-            <CardFooter className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:justify-between">
-              <div className="flex gap-2">
-                <Button asChild variant="outline">
-                  <Link href="/books">Cancelar</Link>
-                </Button>
-                <Button form="edit_book_form" type="submit" disabled={processing || !book.can_edit}>Salvar</Button>
-              </div>
+              </CardContent>
+              <CardFooter className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:justify-between">
+                <div className="flex gap-2">
+                  <Button asChild variant="outline">
+                    <Link href="/books">Cancelar</Link>
+                  </Button>
+                  <Button type="submit" disabled={processing || !book.can_edit}>Salvar</Button>
+                </div>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="destructive" disabled={!book.can_edit}>Remover</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Remover livro?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta acao remove o livro do seu catalogo e nao pode ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction variant="destructive" onClick={removeBook}>Remover</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardFooter>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button type="button" variant="destructive" disabled={!book.can_edit}>Remover</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remover livro?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acao remove o livro do seu catalogo e nao pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={removeBook}>Remover</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardFooter>
+            </form>
           </Card>
         </section>
       </div>

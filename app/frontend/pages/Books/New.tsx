@@ -153,8 +153,8 @@ export default function NewBook({ genre_options }: NewBookProps) {
               <CardTitle>Confirmar cadastro</CardTitle>
               <CardDescription>Revise os dados antes de salvar no catalogo.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <form id="book_form" className="space-y-4" onSubmit={submit}>
+            <form className="flex flex-col gap-(--card-spacing)" onSubmit={submit}>
+              <CardContent className="space-y-4">
                 {previewCoverUrl && (
                   <img className="mb-4 aspect-[3/4] w-32 rounded-lg border object-cover" src={previewCoverUrl} alt="Previa da capa" />
                 )}
@@ -221,14 +221,14 @@ export default function NewBook({ genre_options }: NewBookProps) {
                     {errors['book.genre'] && <p className="text-sm text-destructive">{errors['book.genre']}</p>}
                   </div>
                 </div>
-              </form>
-            </CardContent>
-            <CardFooter className="flex justify-between gap-2">
-              <Button asChild variant="outline">
-                <Link href="/books">Cancelar</Link>
-              </Button>
-              <Button form="book_form" type="submit" disabled={processing}>Confirmar</Button>
-            </CardFooter>
+              </CardContent>
+              <CardFooter className="flex justify-between gap-2">
+                <Button asChild variant="outline">
+                  <Link href="/books">Cancelar</Link>
+                </Button>
+                <Button type="submit" disabled={processing}>Confirmar</Button>
+              </CardFooter>
+            </form>
           </Card>
         </section>
       </div>
