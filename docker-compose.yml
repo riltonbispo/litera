@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-litera}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-litera_password}
+      POSTGRES_DB: ${POSTGRES_DB:-litera_development}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    command: ["./bin/rails", "server", "-b", "0.0.0.0"]
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      RACK_ENV: ${RACK_ENV:-development}
+      DATABASE_URL: ${DATABASE_URL:-postgres://litera:litera_password@postgres:5432/litera_development}
+      VITE_RUBY_HOST: vite
+      VITE_RUBY_PORT: 3036
+      VITE_RUBY_PUBLIC_HOST: localhost
+      VITE_RUBY_PUBLIC_PORT: 3036
+    ports:
+      - "${RAILS_PORT:-3100}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vite:
+        condition: service_started
+
+  vite:
+    build: .
+    command: ["./bin/vite", "dev"]
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      VITE_RUBY_HOST: 0.0.0.0
+      VITE_RUBY_PORT: 3036
+    ports:
+      - "${VITE_PORT:-3036}:3036"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
