@@ -18,7 +18,9 @@ module Users
         clean_up_passwords(resource)
         set_minimum_password_length
 
-        render inertia: "Auth/Register", props: registration_props, status: :unprocessable_entity
+        render inertia: "Auth/Register", props: registration_props.merge(
+          errors: inertia_errors(resource, scope: "user")
+        ), status: :unprocessable_entity
       end
     end
 
