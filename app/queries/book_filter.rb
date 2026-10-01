@@ -9,7 +9,7 @@ class BookFilter
     filtered_scope = filter_by_author(filtered_scope)
     filtered_scope = filter_by_genre(filtered_scope)
     filtered_scope = filter_by_first_publish_year(filtered_scope)
-    filtered_scope.order(created_at: :desc)
+    filtered_scope.order(created_at: :desc, id: :desc)
   end
 
   private

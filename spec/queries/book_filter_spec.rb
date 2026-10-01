@@ -20,6 +20,20 @@ RSpec.describe BookFilter do
     expect(described_class.new(Book.all, {}).call).to eq([ newer, older ])
   end
 
+  it "keeps a total order by breaking created_at ties on descending id" do
+    same_instant = Time.utc(2026, 1, 1)
+    first = create_book(title: "First", created_at: same_instant)
+    second = create_book(title: "Second", created_at: same_instant)
+    third = create_book(title: "Third", created_at: same_instant)
+
+    page_one = described_class.new(Book.all, {}).call.page(1).per(2)
+    page_two = described_class.new(Book.all, {}).call.page(2).per(2)
+
+    expect(page_one).to eq([ third, second ])
+    expect(page_two).to eq([ first ])
+    expect((page_one.to_a + page_two.to_a).map(&:id).uniq.size).to eq(3)
+  end
+
   it "filters by sanitized partial author text" do
     matching = create_book(author: "A_ Percent")
     create_book(title: "Other", author: "Axx Percent", first_publish_year: 1900)
