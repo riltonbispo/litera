@@ -3,11 +3,72 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  lint-ruby:
+    name: Lint Ruby
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      RUBOCOP_CACHE_ROOT: tmp/rubocop
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Run RuboCop
+        run: bundle exec rubocop -f github
+
+  typecheck-frontend:
+    name: Typecheck and build frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Read Node version
+        id: node-version
+        run: echo "version=$(sed -n 's/^ARG NODE_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+          cache: npm
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npm run check
+
+      - name: Build Vite bundle
+        run: RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 bin/vite build
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -27,7 +88,6 @@ jobs:
     env:
       RAILS_ENV: test
       DATABASE_URL: postgres://litera:litera_password@localhost:5432/litera_test
-      RUBOCOP_CACHE_ROOT: tmp/rubocop
 
     steps:
       - name: Checkout code
@@ -38,23 +98,36 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install JavaScript dependencies
-        run: npm ci
-
-      - name: Run RuboCop
-        run: bundle exec rubocop -f github
-
-      - name: Check TypeScript
-        run: npx tsc --noEmit
-
       - name: Prepare database
         run: bundle exec rails db:prepare
 
       - name: Run RSpec
         run: bundle exec rspec
+
+      - name: Upload SimpleCov report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simplecov-report
+          path: coverage/
+          if-no-files-found: warn
+
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Run Brakeman
+        run: bundle exec brakeman -q --no-pager
+
+      - name: Run Bundler Audit
+        run: bundle exec bundler-audit check --update

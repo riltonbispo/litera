@@ -1,5 +1,7 @@
 # Litera
 
+[![CI](https://github.com/riltonbispo/litera/actions/workflows/ci.yml/badge.svg)](https://github.com/riltonbispo/litera/actions/workflows/ci.yml)
+
 Catálogo coletivo de leituras. Cada usuário cadastra os livros que leu; o catálogo é público e
 compartilhado, e ninguém vê os cadastros dos outros como editáveis. A busca de metadados é
 integrada com a [OpenLibrary](https://openlibrary.org), com cadastro manual como alternativa.
