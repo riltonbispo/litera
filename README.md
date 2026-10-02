@@ -1,15 +1,21 @@
 # Litera
 
-[![CI](https://github.com/riltonbispo/litera/actions/workflows/ci.yml/badge.svg)](https://github.com/riltonbispo/litera/actions/workflows/ci.yml)
+Catálogo de livros onde todo mundo cadastra o que leu. A home é aberta: quem não tem conta
+consegue ver e filtrar a coleção. Quem cria conta adiciona livros, edita e apaga só os que
+cadastrou.
 
-Um catálogo coletivo de leituras. Qualquer pessoa pode ver e filtrar os livros cadastrados; quem cria
-uma conta adiciona os seus e só consegue editar ou apagar o que ela mesma cadastrou.
+Para adicionar um livro, a pessoa digita o título e a aplicação busca na OpenLibrary. As opções
+aparecem na tela, e ao escolher uma, autor, ano, gênero e capa vêm preenchidos. Se a busca não
+sir (ou a OpenLibrary estiver fora do ar), dá para preencher na mão.
 
-Para cadastrar, basta digitar o título: a aplicação busca na OpenLibrary, mostra as opções e, ao
-escolher uma, autor, ano, gênero e capa já vêm preenchidos. Se a busca não ajudar (ou a OpenLibrary
-estiver fora do ar), dá para preencher tudo na mão.
+## Tecnologias
 
-Feito com Rails, React + TypeScript (via Inertia.js), shadcn/ui, PostgreSQL e RSpec.
+- Ruby 3.3+ / Rails 8
+- React 19 + TypeScript, com Inertia.js e Vite
+- Tailwind CSS + shadcn/ui
+- PostgreSQL
+- Pundit (permissões), Devise (login), Kaminari (paginação), Faraday (HTTP), RSpec + WebMock
+- Docker e Docker Compose
 
 ## Como rodar
 
@@ -18,130 +24,175 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Depois é só abrir http://localhost:3100. O banco é criado no primeiro boot, mas não há dados de
-exemplo: crie uma conta em `/users/sign_up` para começar.
+A aplicação fica em http://localhost:3100 (o Postgres sobe em 5433 e o Vite em 3036, caso precise
+mudar, é no `.env`).
 
-Para rodar lint, typecheck e testes:
+O banco é criado no primeiro boot e não vem com dados de exemplo. Crie uma conta em
+`/users/sign_up` e cadastre o primeiro livro.
+
+### Lint, tipos e testes
 
 ```bash
+# RuboCop
 docker compose exec -T app bundle exec rubocop
+
+# typecheck do frontend (script do próprio projeto)
 docker compose exec -T app npm run check
 
+# RSpec
 docker compose exec -T -e RAILS_ENV=test \
   -e DATABASE_URL=postgres://litera:litera_password@postgres:5432/litera_test \
   app bash -lc './bin/rails db:prepare && bundle exec rspec'
 ```
 
-Os dois `-e` do último comando são necessários. O compose sobe tudo em `development`, e sem eles o
-RSpec acabaria rodando contra o banco de desenvolvimento.
+Os dois `-e` do RSpec são obrigatórios: o compose sobe tudo em `development`, e sem eles a suíte
+roda contra o banco de desenvolvimento em vez do de teste.
 
-## Como o código está organizado
+## O que a aplicação faz
 
-Procurei deixar cada coisa no seu lugar. O Rails decide as regras (quem pode editar, o que é
-duplicado, o que é válido) e o React só cuida da tela.
+- Lista paginada (10 por página, ordenada do cadastro mais novo para o mais antigo) com filtro por
+  autor, gênero e ano.
+- Cadastro, edição e remoção de livros. Os botões de editar/apagar só aparecem nos livros da própria
+  pessoa, e o backend confere isso de novo.
+- Busca na OpenLibrary, com os resultados abrindo na tela para a pessoa escolher.
+- Endpoint JSON em `/books.json`, com os mesmos filtros e a mesma paginação da home.
 
-- Os controllers só coordenam. Os filtros ficam em `app/queries`, o formato do JSON de cada livro em
-  `app/serializers`, as permissões em `app/policies` (Pundit) e a conversa com a OpenLibrary em
+## Organização
+
+A ideia foi deixar cada coisa no lugar dela. O Rails decide as regras, o React cuida da tela.
+
+- `app/controllers`: só orquestram. Os filtros estão em `app/queries`, o formato do JSON de cada
+  livro em `app/serializers`, as permissões em `app/policies` e a integração com a OpenLibrary em
   `app/services/open_library`.
-- O React não tem regra de permissão. O Rails manda um `can_edit` em cada livro e a tela apenas
-  mostra ou esconde os botões.
-- Os tipos que o React espera estão em `app/frontend/types`, e é nesse arquivo que fica combinado o
-  que o Rails entrega para cada página.
+- `app/frontend`: páginas e componentes. Não existe regra de permissão aqui: o Rails manda um
+  `can_edit` em cada livro e a tela só mostra ou esconde os botões.
+- `app/frontend/types`: o contrato entre os dois lados. É o que o Rails promete entregar em cada
+  página.
 
-## Decisões que o desafio deixou em aberto
+## Decisões técnicas
+
+O desafio deixou três pontos em aberto. Foi assim que resolvi cada um.
 
 ### Livro duplicado
 
-Cada usuário não pode cadastrar o mesmo livro duas vezes, mas duas pessoas diferentes podem ter o
-mesmo livro. Isso porque a ideia do catálogo é registrar leituras: se a Ana e o João leram *Dom
-Casmurro*, os dois devem aparecer. Um livro é considerado repetido quando o mesmo usuário já tem outro
-com o mesmo título, autor e ano (sem diferenciar maiúsculas de minúsculas), não importa se veio da
-OpenLibrary ou foi digitado.
+O mesmo usuário não cadastra o mesmo livro duas vezes. Duas pessoas diferentes podem, porque a
+ideia do catálogo é registrar leituras: se a Ana e o João leram *Dom Casmurro*, os dois têm que
+aparecer.
 
-Garanto isso de duas formas: uma validação no model, que gera a mensagem de erro no campo certo, e um
-índice único no banco, que segura o caso de duas requisições simultâneas. Sem o índice, a validação
-sozinha deixaria passar as duas.
+Considero repetido quando o mesmo usuário já tem um livro com o mesmo título, autor e ano. A
+comparação ignora maiúsculas e minúsculas, e vale igual para livro vindo da OpenLibrary e para o
+cadastrado na mão.
 
-Uma consequência: como o ano entra na comparação, o mesmo título com anos diferentes é aceito. Achei
-razoável, já que costumam ser edições diferentes.
+A garantia vem de dois lugares: uma validação no model, que mostra o erro no formulário, e um índice
+único no banco. Só a validação não bastaria, porque duas requisições simultâneas podem passar pelas
+duas e só uma grava. Quando isso acontece, o `RecordNotUnique` vira o mesmo erro de validação, em vez
+de erro 500.
+
+Um efeito colateral: como o ano entra na comparação, o mesmo título com anos diferentes é aceito.
+Achei razoável, já que normalmente são edições diferentes.
 
 ### OpenLibrary fora do ar ou sem resultado
 
-Não quis que um problema num serviço de terceiros impedisse alguém de cadastrar um livro. Então a
-busca é só uma ajuda: se ela falha, demora mais de 2 segundos ou volta vazia, aparece um aviso em
-português e o formulário continua liberado para preenchimento manual.
+Não quis que um problema de um serviço de terceiro impedisse alguém de cadastrar um livro. A busca
+é ajuda, não requisito: se ela falhar, demorar mais de 2 segundos ou voltar vazia, aparece um aviso
+em português e o formulário continua liberado para preenchimento manual.
 
-Por dentro, o cliente da OpenLibrary transforma cada tipo de falha (timeout, erro 500, resposta
-quebrada, lista vazia) num erro com código próprio, e a tela mostra a mensagem certa para cada um.
-Livros que vêm sem autor ou sem ano também não quebram nada. Para não sobrecarregar a API, a busca só
-começa com 2 letras e cada usuário pode fazer até 30 por minuto.
+Por dentro, o cliente converte cada tipo de falha (timeout, erro 500, resposta quebrada, lista
+vazia) num erro com código próprio, e a tela mostra a mensagem correspondente. Resultado sem autor ou
+sem ano também não quebra nada. Para não abusar da API, a busca só começa com 2 letras e cada
+usuário pode fazer 30 por minuto.
 
-Não coloquei cache nem nada mais sofisticado de resiliência. Para o tamanho do projeto, o aviso e o
-cadastro manual resolvem.
+Não coloquei cache nem nada mais sofisticado de resiliência. Para o tamanho do projeto, o aviso
+mais o cadastro manual resolvem.
 
-### Quem pode acessar `/books.json`
+### Acesso ao `/books.json`
 
-Qualquer pessoa, igual à página inicial, e com paginação (10 por página, no máximo 50). Se a home é
-pública, não faria sentido o JSON do mesmo conteúdo exigir login. O que é protegido é a edição, que
-passa sempre pela policy.
+Liberado para qualquer pessoa, com paginação e os mesmos filtros da home. Se a página inicial é
+pública, não faria sentido o JSON do mesmo conteúdo pedir login. O que é protegido é a edição, e
+ela sempre passa pela policy.
 
-O JSON não traz e-mail nem dados da conta, só o `owner_id`. Sei que isso permite ver quais livros são
-da mesma pessoa, mas como o catálogo já é público, achei aceitável.
+O JSON não traz e-mail nem nada da conta, só o `owner_id`. Dá para perceber quais livros são da
+mesma pessoa, mas como o catálogo já é público, achei aceitável.
 
-## Outras escolhas
+### Outras escolhas
 
-**Gênero.** É um campo de texto livre. Ao escolher um resultado da OpenLibrary ele vem preenchido com o
-primeiro assunto do livro, e dá para editar antes de salvar. Considerei uma tabela de gêneros ou uma
-lista fixa, mas isso exigiria cadastrar e migrar dados, e o gênero vem de uma fonte que não é
-padronizada. O custo é que os gêneros chegam em inglês.
+**Gênero é texto livre.** Quando o livro vem da OpenLibrary, o gênero é preenchido com o primeiro
+assunto do livro e pode ser editado antes de salvar. Pensei em tabela de gêneros ou lista fixa, mas
+isso exigiria cadastrar e migrar dados, e a fonte dos assuntos não é padronizada. O custo é que os
+gêneros chegam em inglês.
 
-**Inertia no lugar do Turbo.** O Rails já vem com o Hotwire, mas ele briga com o Inertia, então removi
-o Turbo, o Stimulus e o importmap. Existe um teste que falha se algum deles voltar.
+**Inertia no lugar do Turbo.** O Rails já vem com Hotwire no boilerplate, e ele briga com o Inertia
+(as duas camadas interceptam o mesmo clique). Removi o Turbo, o Stimulus e o importmap, e deixei um
+spec que falha se algum deles voltar.
 
-**Paginação.** Uso Kaminari, ordenando por data e depois por `id`, para a ordem não mudar entre uma
-página e outra.
+**Paginação com Kaminari**, ordenando por `created_at` e depois por `id`, para dois livros criados no
+mesmo segundo não trocarem de lugar entre uma página e outra.
 
-**Testes.** Nenhum teste chama a internet: a OpenLibrary é simulada com WebMock em todos os casos
-(sucesso, vazio, 500, timeout, resposta inválida). São mais de 100 testes e a cobertura de linhas fica
-em torno de 97%. O frontend não tem testes próprios, só o typecheck.
+**Controller não conhece regra.** Ele só monta a resposta. Filtro é `BookFilter`, formato do JSON é
+`BookSerializer`, permissão é `BookPolicy`. Isso deixa mais arquivos, mas cada um tem uma
+responsabilidade só, e dá para testar cada parte isolada.
+
+## Testes
+
+101 exemplos, todos passando, cobrindo models, policies, queries, serializer, requests (incluindo
+autenticação) e o serviço da OpenLibrary. Cobertura de linhas em 97%.
+
+Nenhum teste toca a internet: a OpenLibrary é simulada com WebMock, incluindo sucesso, lista vazia,
+erro 500, timeout e resposta inválida.
+
+O frontend não tem testes próprios, só o typecheck (`npm run check`).
 
 ## Com mais tempo
 
-- **Gênero em português.** Faria uma lista curada de gêneros, com um combobox no formulário, e um
-  mapeamento dos assuntos da OpenLibrary. Deixei de fora porque envolve decidir a lista e o que fazer
-  com os dados já cadastrados, e preferi deixar o fluxo principal bem redondo.
-- **Testes do frontend**, principalmente da paginação e dos formulários. Priorizei o backend porque é
-  onde estão as regras.
-- **Mensagens de validação em português** pelo I18n do Rails. Algumas ainda aparecem em inglês.
-- **Recuperação de senha.** O Devise está configurado para isso, mas não fiz as telas.
-- **Cache da OpenLibrary, logs estruturados e manifests de Kubernetes.** Eram diferenciais e preferi
-  gastar o tempo em testes e na qualidade do fluxo de cadastro.
+**Deploy.** É o que mais falta hoje: subir a imagem no ECR e rodar em ECS/Fargate, com RDS para o
+Postgres e um ALB na frente. Tem mais de uma forma de fazer isso e eu ainda não tenho prática com
+essas ferramentas, então não quis subir algo que eu não conseguiria manter. Kubernetes entrou na
+lista de possibilidades, mas preferi não colocar manifestos no repositório sem saber rodá-los: um
+yaml que nunca subiu não vale como entrega.
 
-## Como usei IA
+**Serviços de apoio.** Cache da OpenLibrary (evita chamar a API de novo para o mesmo título) e logs
+estruturados foram os diferenciais que ficaram de fora. Priorizei terminar o fluxo de cadastro com
+testes em cima, que é o que é avaliado primeiro.
 
-Usei o Claude para planejar: pensar a arquitetura, discutir as três decisões acima, escrever os
-prompts de cada etapa e me ajudar a entender bugs a partir do que eu via no navegador. A implementação
-foi feita principalmente com o Codex, que seguia um arquivo `AGENTS.md` com as regras do projeto e
-recebia uma etapa por vez. Eu revisei cada etapa, testei na mão e decidi o que entrava. Sou
-responsável por todo o código, e consigo explicar qualquer parte dele.
+**Gênero em português.** Uma lista curada de gêneros com combobox no formulário e um mapeamento dos
+assuntos da OpenLibrary. Deixei de fora porque dá trabalho decidir a lista e o que fazer com os dados
+já cadastrados.
 
-Os erros da IA que mais deram trabalho (o registro completo está em [`ai-notes.md`](./ai-notes.md)):
+**Testes do frontend**, principalmente da paginação e dos formulários. Consigo garantir o contrato
+entre Rails e React pelo typecheck e pelos specs de request, mas o comportamento da tela em si só foi
+testado na mão.
 
-**A tela em branco na paginação.** O Turbo do Rails ficou ativo junto com o Inertia. Ao clicar na
-página 2 a tela ficava em branco, e só funcionava com F5. Descobri olhando a aba Network, que mostrava
-cabeçalhos do Turbo (`x-turbo-request-id`) em vez dos do Inertia. Removi o Hotwire e escrevi um teste
-para isso não voltar.
+**Mensagens de validação em português** pelo I18n do Rails. Algumas ainda aparecem em inglês.
 
-**O "Livro cadastrado com sucesso" que aparecia mesmo com erro.** Ao tentar cadastrar um livro
-repetido, o servidor respondia 422 mas sem a lista de erros, e o Inertia entende isso como sucesso.
-Resultado: o usuário via a mensagem de sucesso e o livro não era salvo. A correção foi montar os erros
-no formato que o Inertia espera, e o mesmo problema também existia no cadastro de conta.
+**Recuperação de senha.** O Devise já está configurado para isso, faltam as telas.
 
-**O "tsc OK" que não era.** O Codex me disse que o typecheck passava, mas ele rodava um comando mais
-frouxo do que o do projeto. Quando rodei o `npm run check`, apareceram erros de tipo que já estavam em
-commits anteriores. Passei a conferir sempre com o script oficial.
+## Uso de IA
 
-**Dois erros do próprio Claude.** Ao investigar por que o cadastro manual falhava, ele suspeitou de
-strings vazias, mas o problema real era duplicidade com um livro já cadastrado pela OpenLibrary. Em
-outro momento, sugeriu duas regras de duplicidade separadas (manual e OpenLibrary), o que deixaria o
-mesmo livro entrar duas vezes. Descartei e mantive uma regra só.
+Usei IA em todas as etapas: para pensar a arquitetura, para montar os prompts e para investigar bugs
+a partir do que eu via no navegador. A implementação foi feita principalmente pelo Codex, seguindo
+um `AGENTS.md` com as regras do projeto, uma etapa por vez. Eu revisei cada etapa, rodei na mão e
+decidi o que entrava. O código entregue é de minha responsabilidade e eu consigo explicar qualquer
+parte dele.
+
+O registro completo dos erros que a IA cometeu e de como eu corrigi está em
+[`ai-notes.md`](./ai-notes.md). Os três que maisvaleram:
+
+**Tela em branco ao paginar.** O Turbo do boilerplate continuou ativo junto com o Inertia. Ao clicar
+na página 2 a tela ficava branca, e só voltava com F5. Achei olhando a aba Network do DevTools: os
+requests saíam com headers do Turbo (`x-turbo-request-id`) em vez dos do Inertia. Removi o Hotwire e
+escrevi um spec para não voltar.
+
+**"Cadastrado com sucesso" numa falha.** Ao cadastrar um livro repetido, o servidor respondia 422
+mas sem a lista de erros, e o Inertia entende isso como sucesso: o usuário via o toast de sucesso e o
+livro não era salvo. O mesmo bug estava no cadastro de conta, e ali nem havia toast. Passei a montar
+os erros no formato que o Inertia espera e criei specs que falhavam antes da correção.
+
+**"O typecheck passou" que não passou.** O agente rodava `npx tsc --noEmit` na raiz, que usa outro
+`tsconfig` e é mais frouxo que o script do projeto. Quando rodei `npm run check`, apareceram 12 erros
+de tipo que já estavam em commits anteriores. O CI tinha o mesmo furo; passei a usar `npm run check`
+nos dois lugares.
+
+Também descartei uma sugestão da IA de criar dois índices parciais de unicidade (um para livros da
+OpenLibrary, outro para os manuais). Do jeito que ela sugeriu, o mesmo livro entraria duas vezes
+para a mesma pessoa: uma pela busca e outra pelo cadastro manual, que é justamente o caminho de quem
+não acha o livro na OpenLibrary. Ficou uma regra só, sem olhar a origem do cadastro.
