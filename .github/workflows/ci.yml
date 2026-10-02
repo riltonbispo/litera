@@ -98,6 +98,19 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Read Node version
+        id: node-version
+        run: echo "version=$(sed -n 's/^ARG NODE_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
       - name: Prepare database
         run: bundle exec rails db:prepare
 
