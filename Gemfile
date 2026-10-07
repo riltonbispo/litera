@@ -7,7 +7,7 @@ gem "propshaft"
 # Local fallback database adapter. Docker and CI use PostgreSQL via DATABASE_URL.
 gem "sqlite3", ">= 2.1"
 # PostgreSQL adapter for Docker, CI, and deployment.
-gem "pg", "~> 1.6"
+gem "pg", "~> 1.7"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
