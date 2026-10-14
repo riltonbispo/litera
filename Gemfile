@@ -73,4 +73,4 @@ gem "kaminari", "~> 1.2"
 gem "faraday", "~> 2.14"
 
 # Stubs external HTTP in service/request specs.
-gem "webmock", "~> 3.26", group: :test
+gem "webmock", "~> 3.29", group: :test
