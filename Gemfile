@@ -70,7 +70,7 @@ gem "vite_rails", "~> 3.11"
 gem "kaminari", "~> 1.2"
 
 # HTTP client for OpenLibrary with explicit timeouts.
-gem "faraday", "~> 2.14"
+gem "faraday", "~> 2.15"
 
 # Stubs external HTTP in service/request specs.
 gem "webmock", "~> 3.26", group: :test
