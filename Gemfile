@@ -67,7 +67,7 @@ gem "rspec-rails", "~> 8.0"
 
 gem "vite_rails", "~> 3.11"
 
-gem "kaminari", "~> 1.2"
+gem "kaminari", "~> 1.3"
 
 # HTTP client for OpenLibrary with explicit timeouts.
 gem "faraday", "~> 2.14"
